@@ -35,6 +35,13 @@ require 'sensu-handler'
 require 'gelf'
 
 class GelfHandler < Sensu::Handler
+  File.open("/tmp/handle-temp.txt","a") { |f| f.write("script is running" + "\n") }
+  option :json_config,
+        description: 'Configuration name',
+        short: '-j JSONCONFIG',
+        long: '--json JSONCONFIG',
+        default: 'slack'
+
   def event_name
     @event['client']['name'] + '/' + @event['check']['name']
   end
@@ -47,23 +54,55 @@ class GelfHandler < Sensu::Handler
     @event['action'].eql?('resolve') ? ::GELF::Levels::INFO : ::GELF::Levels::FATAL
   end
 
+  def server_address
+    get_setting(server)
+  end
+
+  def server_port
+    get_setting(port)
+  end
+
+  def get_setting(name)
+    settings[config[:json_config]][name]
+  end
+
   def handle
-    @notifier = ::GELF::Notifier.new(settings['gelf']['server'], settings['gelf']['port'])
+    @notifier = ::GELF::Notifier.new(server_address, server_port)
+    File.open("/tmp/handle-temp.txt","a") { |f| f.write("handle is called" + "\n") }
+    File.open("/tmp/handle-temp.txt","a") { |f| f.write("#{server_address}" + "\n") }
+    File.open("/tmp/handle-temp.txt","a") { |f| f.write("#{server_port]}" + "\n") }
     gelf_msg = {
       short_message: "#{action_to_string} - #{event_name}: #{@event['check']['notification']}",
       full_message: @event['check']['output'],
-      facility: 'sensu',
-      level: action_to_gelf_level,
+      facility: "sensu",
+      level: "#{action_to_gelf_level}",
       host: @event['client']['name'],
       timestamp: @event['check']['issued'],
       _address: @event['client']['address'],
       _check_name: @event['check']['name'],
       _command: @event['check']['command'],
-      _status: @event['check']['status'],
-      _flapping: @event['check']['flapping'],
+      _status: "#{translate_status}",
       _occurrences: @event['occurrences'],
       _action: @event['action']
     }
     @notifier.notify!(gelf_msg)
+  end
+  
+  def check_status
+    @event['check']['status']
+  end
+
+  def translate_status
+    status = {
+      0 => :OK,
+      1 => :WARNING,
+      2 => :CRITICAL,
+      3 => :UNKNOWN
+    }
+    begin
+      status.fetch(check_status.to_i)
+    rescue KeyError
+      status.fetch(3)
+    end
   end
 end
