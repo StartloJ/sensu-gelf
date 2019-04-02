@@ -9,6 +9,9 @@
 # live in your /etc/sensu/conf.d directory. The 'server' and 'port'
 # options are mandatory. An example gelf.json file is provided.
 #
+# In optional you can use another name for json_config(with -j / --json) 
+# with separate log handler and send to targets log server with config.
+#
 # Things to note about how GELF messages are constructed:
 # ---------------
 #  - The 'facility' field is hardcoded to 'sensu'. This may change in the
@@ -26,21 +29,21 @@
 #  - The Sensu error level (eg: WARNING, CRITICAL) is available in the
 #    '_status' field as an integer.
 #
-# Copyright 2012 Joe Miller (https://github.com/joemiller | http://twitter.com/miller_joe)
+# Copyright 2019 Watcharin Yangngam (twitter.com/DukeCyber)
 #
 # Released under the same terms as Sensu (the MIT license); see LICENSE
 # for details.
 
 require 'sensu-handler'
 require 'gelf'
+require 'json'
 
 class GelfHandler < Sensu::Handler
-  File.open("/tmp/handle-temp.txt","a") { |f| f.write("script is running" + "\n") }
   option :json_config,
         description: 'Configuration name',
         short: '-j JSONCONFIG',
         long: '--json JSONCONFIG',
-        default: 'slack'
+        default: 'gelf'
 
   def event_name
     @event['client']['name'] + '/' + @event['check']['name']
@@ -55,27 +58,28 @@ class GelfHandler < Sensu::Handler
   end
 
   def server_address
-    get_setting(server)
+    get_setting('server')
   end
 
   def server_port
-    get_setting(port)
+    get_setting('port')
   end
 
   def get_setting(name)
     settings[config[:json_config]][name]
+  rescue TypeError, NoMethodError => e
+    puts "settings: #{settings}"
+    puts "error: #{e.message}"
+    exit 3 # unknown
   end
 
   def handle
-    @notifier = ::GELF::Notifier.new(server_address, server_port)
-    File.open("/tmp/handle-temp.txt","a") { |f| f.write("handle is called" + "\n") }
-    File.open("/tmp/handle-temp.txt","a") { |f| f.write("#{server_address}" + "\n") }
-    File.open("/tmp/handle-temp.txt","a") { |f| f.write("#{server_port]}" + "\n") }
+    @notifier = ::GELF::Notifier.new(server_address, server_port , "LAN" ,{ :protocol => GELF::Protocol::TCP })
     gelf_msg = {
       short_message: "#{action_to_string} - #{event_name}: #{@event['check']['notification']}",
       full_message: @event['check']['output'],
       facility: "sensu",
-      level: "#{action_to_gelf_level}",
+      level: action_to_gelf_level,
       host: @event['client']['name'],
       timestamp: @event['check']['issued'],
       _address: @event['client']['address'],
@@ -87,7 +91,7 @@ class GelfHandler < Sensu::Handler
     }
     @notifier.notify!(gelf_msg)
   end
-  
+
   def check_status
     @event['check']['status']
   end
