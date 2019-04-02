@@ -34,11 +34,11 @@ sensu/conf.d/handler/handlers-gelf.json
 
 ## Installation
 This not official plugin you must use `./gem` in path [ `/opt/sensu/embedded/bin/` ] \n
-1. install [specific_install](https://github.com/rdp/specific_install) in gem lib.
+* install [specific_install](https://github.com/rdp/specific_install) in gem lib.
 ```
 sudo ./gem install specific_install
 ```
-1. install sensu-gelf plugins with specific_install
+* install sensu-gelf plugins with specific_install
 ```
 sudo ./gem specific_install https://github.com/StartloJ/sensu-gelf.git
 ```
