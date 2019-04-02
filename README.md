@@ -1,6 +1,5 @@
 ## Sensu-Plugins-gelf
 
-[![Build Status](https://travis-ci.org/sensu-plugins/sensu-plugins-gelf.svg?branch=master)](https://travis-ci.org/sensu-plugins/sensu-plugins-gelf)
 [![Gem Version](https://badge.fury.io/rb/sensu-plugins-gelf.svg)](http://badge.fury.io/rb/sensu-plugins-gelf)
 [![Dependency Status](https://gemnasium.com/sensu-plugins/sensu-plugins-gelf.svg)](https://gemnasium.com/sensu-plugins/sensu-plugins-gelf)
 
@@ -10,8 +9,8 @@
  * bin/handler-gelf.rb
 
 ## Usage
-
-```
+sensu/conf.d/gelf.json
+```json
 {
   "gelf": {
     "server": "graylog.dom.tld",
@@ -20,8 +19,28 @@
 }
 ```
 
-## Installation
+Example for use optional [json_config] \n
+sensu/conf.d/handler/handlers-gelf.json
+```json
+{
+  "handlers": {
+    "gelf": {
+      "type": "pipe",
+      "command": "handler-gelf.rb --json 'gelf'",
+    }
+  }
+}
+```
 
-[Installation and Setup](http://sensu-plugins.io/docs/installation_instructions.html)
+## Installation
+This not official plugin you must use `./gem` in path [ `/opt/sensu/embedded/bin/` ] \n
+1. install [specific_install](https://github.com/rdp/specific_install) in gem lib.
+```
+sudo ./gem install specific_install
+```
+1. install sensu-gelf plugins with specific_install
+```
+sudo ./gem specific_install https://github.com/StartloJ/sensu-gelf.git
+```
 
 ## Notes
