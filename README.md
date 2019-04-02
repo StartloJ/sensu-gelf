@@ -4,11 +4,15 @@
 [![Dependency Status](https://gemnasium.com/sensu-plugins/sensu-plugins-gelf.svg)](https://gemnasium.com/sensu-plugins/sensu-plugins-gelf)
 
 ## Functionality
+Handler
+- **handler-gelf.rb**
+
 
 ## Files
  * bin/handler-gelf.rb
 
 ## Usage
+### Example with use optional [json_config]
 sensu/conf.d/gelf.json
 ```json
 {
@@ -18,8 +22,7 @@ sensu/conf.d/gelf.json
   }
 }
 ```
-
-Example for use optional [json_config] \n
+\
 sensu/conf.d/handler/handlers-gelf.json
 ```json
 {
